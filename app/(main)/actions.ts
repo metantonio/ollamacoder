@@ -29,6 +29,9 @@ export async function createChat(
       title: "",
       shadcn: true,
     },
+  }).catch(e=>{
+    console.log(e);
+    
   });
 
   // let options: ConstructorParameters<typeof Together>[0] = {};
@@ -166,7 +169,7 @@ export async function createChat(
   let userMessage: string;
   if (quality === "high") {
     let initialRes = await ollama.chat({
-      model: "Qwen/Qwen2.5-Coder-32B-Instruct",
+      model: "llama3.2",
       messages: [
         {
           role: "system",
