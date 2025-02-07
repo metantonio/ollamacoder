@@ -115,6 +115,8 @@ export default function Home() {
                     throw new Error("No body on response");
                   }
                   return res.body;
+                }).catch(e=>{
+                  console.error(e)
                 });
 
                 startTransition(() => {
