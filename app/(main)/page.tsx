@@ -415,5 +415,5 @@ function LoadingMessage({
   );
 }
 
-export const runtime = "edge";
+// export const runtime = "edge";
 export const maxDuration = 45;

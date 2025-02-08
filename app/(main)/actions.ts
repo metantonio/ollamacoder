@@ -1,22 +1,19 @@
 "use server";
 
-import OllamaAPI from "@/lib/ollama_api";
+import ollama from 'ollama'
 import { getPrisma } from "@/lib/prisma";
 import {
   getMainCodingPrompt,
+  screenshotToCodePrompt,
   softwareArchitectPrompt,
 } from "@/lib/prompts";
 import { notFound } from "next/navigation";
-// import Together from "together-ai";
-// import ollama from 'ollama'
-// import { Ollama } from 'ollama'
-const ollama = new OllamaAPI();
 
-// const ollama = new Ollama({ host: 'http://127.0.0.1:11434' })
+const llmModel = "phi:latest"
 
 export async function createChat(
   prompt: string,
-  model: string,
+  model: string=llmModel,
   quality: "high" | "low",
   screenshotUrl: string | undefined,
 ) {
@@ -29,72 +26,11 @@ export async function createChat(
       title: "",
       shadcn: true,
     },
-  }).catch(e=>{
-    console.log(e);
-    
   });
 
-  // let options: ConstructorParameters<typeof Together>[0] = {};
-  // if (process.env.HELICONE_API_KEY) {
-  //   options.baseURL = "https://together.helicone.ai/v1";
-  //   options.defaultHeaders = {
-  //     "Helicone-Auth": `Bearer ${process.env.HELICONE_API_KEY}`,
-  //     "Helicone-Property-appname": "LlamaCoder",
-  //     "Helicone-Session-Id": chat.id,
-  //     "Helicone-Session-Name": "LlamaCoder Chat",
-  //   };
-  // }
-
-  // const together = new Together(options);
-
-  // async function fetchTitle() {
-  //   const responseForChatTitle = await together.chat.completions.create({
-  //     model: "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
-  //     messages: [
-  //       {
-  //         role: "system",
-  //         content:
-  //           "You are a chatbot helping the user create a simple app or script, and your current job is to create a succinct title, maximum 3-5 words, for the chat given their initial prompt. Please return only the title.",
-  //       },
-  //       {
-  //         role: "user",
-  //         content: prompt,
-  //       },
-  //     ],
-  //   });
-  //   const title = responseForChatTitle.choices[0]?.message?.content || prompt;
-  //   return title;
-  // }
-
-
-  // async function fetchTopExample() {
-  //   const findSimilarExamples = await together.chat.completions.create({
-  //     model: "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
-  //     messages: [
-  //       {
-  //         role: "system",
-  //         content: `You are a helpful bot. Given a request for building an app, you match it to the most similar example provided. If the request is NOT similar to any of the provided examples, return "none". Here is the list of examples, ONLY reply with one of them OR "none":
-
-  //         - landing page
-  //         - blog app
-  //         - quiz app
-  //         - pomodoro timer
-  //         `,
-  //       },
-  //       {
-  //         role: "user",
-  //         content: prompt,
-  //       },
-  //     ],
-  //   });
-
-  //   const mostSimilarExample =
-  //     findSimilarExamples.choices[0]?.message?.content || "none";
-  //   return mostSimilarExample;
-  // }
   async function fetchTitle() {
     const responseForChatTitle = await ollama.chat({
-      model: "llama3.2",
+      model,
       messages: [
         {
           role: "system",
@@ -113,7 +49,7 @@ export async function createChat(
 
   async function fetchTopExample() {
     const findSimilarExamples = await ollama.chat({
-      model: "llama3.2",
+      model,
       messages: [
         {
           role: "system",
@@ -142,34 +78,28 @@ export async function createChat(
   ]);
 
   let fullScreenshotDescription;
-  // if (screenshotUrl) {
-  //   const screenshotResponse = await together.chat.completions.create({
-  //     model: "meta-llama/Llama-3.2-90B-Vision-Instruct-Turbo",
-  //     temperature: 0.2,
-  //     max_tokens: 1000,
-  //     messages: [
-  //       {
-  //         role: "user",
-  //         content: [
-  //           { type: "text", text: screenshotToCodePrompt },
-  //           {
-  //             type: "image_url",
-  //             image_url: {
-  //               url: screenshotUrl,
-  //             },
-  //           },
-  //         ],
-  //       },
-  //     ],
-  //   });
-
-  //   fullScreenshotDescription = screenshotResponse.choices[0]?.message?.content;
-  // }
+  if (screenshotUrl) {
+    const screenshotResponse = await ollama.chat({
+      model: "meta-llama/Llama-3.2-90B-Vision-Instruct-Turbo",
+      // max_tokens: 1000,
+      messages: [
+        {
+          role: "user",
+          images: [screenshotUrl],
+          content: screenshotToCodePrompt,
+        },
+      ],
+      options: {
+        temperature: 0.2,
+      }
+    });
+    fullScreenshotDescription = screenshotResponse?.message?.content;
+  }
 
   let userMessage: string;
   if (quality === "high") {
     let initialRes = await ollama.chat({
-      model: "llama3.2",
+      model,
       messages: [
         {
           role: "system",
@@ -209,7 +139,7 @@ export async function createChat(
           data: [
             {
               role: "system",
-              content: getMainCodingPrompt(mostSimilarExample),
+              content: getMainCodingPrompt(mostSimilarExample?.trim().replaceAll("\/n", "")),
               position: 0,
             },
             { role: "user", content: userMessage, position: 1 },
