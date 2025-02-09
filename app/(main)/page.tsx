@@ -13,27 +13,32 @@ import { CheckIcon, ChevronDownIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { use, useState, useRef, useTransition } from "react";
+import { use, useState, useRef, useTransition, useEffect } from "react";
 import { createChat } from "./actions";
 import { Context } from "./providers";
 import Header from "@/components/header";
 import { useS3Upload } from "next-s3-upload";
 import UploadIcon from "@/components/icons/upload-icon";
 import { XCircleIcon } from "@heroicons/react/20/solid";
-import { MODELS, SUGGESTED_PROMPTS } from "@/lib/constants";
+import { SUGGESTED_PROMPTS } from "@/lib/constants";
+import { ModelResponse } from "ollama";
+import { ApiResponse } from "@/lib/response";
+import { useChat } from 'ai/react';
 
 export default function Home() {
   const { setStreamPromise } = use(Context);
   const router = useRouter();
-
+  const { messages, input, setInput, append } = useChat();
+  
   const [prompt, setPrompt] = useState("");
-  const [model, setModel] = useState(MODELS[0].value);
+  const [models, setModels] = useState<ModelResponse[]>([]);
+  const [model, setModel] = useState<string>();
   const [quality, setQuality] = useState("high");
   const [screenshotUrl, setScreenshotUrl] = useState<string | undefined>(
     undefined,
   );
   const [screenshotLoading, setScreenshotLoading] = useState(false);
-  const selectedModel = MODELS.find((m) => m.value === model);
+  const selectedModel = models.find((m) => m.name === model);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [isPending, startTransition] = useTransition();
@@ -54,6 +59,23 @@ export default function Home() {
     .map((text) => (text === "" ? "a" : text))
     .join("\n");
 
+  useEffect(() => {
+    fetch(
+      "/api/model",
+    ).then((res) => {
+      return res.json();
+    }).then((data: ApiResponse<ModelResponse[]>) => {
+      setModels(data.data)
+      console.log(data);
+    }).catch(e => {
+      console.error(e)
+    });
+  }, [])
+
+  useEffect(() => {
+    setModel(models?.[0]?.name)
+  }, [models])
+
   return (
     <div className="relative flex grow flex-col">
       <div className="absolute inset-0 flex justify-center">
@@ -69,18 +91,6 @@ export default function Home() {
         <Header />
 
         <div className="mt-10 flex grow flex-col items-center px-4 lg:mt-16">
-          <a
-            className="mb-4 inline-flex shrink-0 items-center rounded-full border-[0.5px] bg-white px-7 py-2 text-xs text-gray-800 shadow-[0px_1px_1px_0px_rgba(0,0,0,0.25)] md:text-base"
-            href="https://togetherai.link/?utm_source=example-app&utm_medium=llamacoder&utm_campaign=llamacoder-app-signup"
-            target="_blank"
-          >
-            <span className="text-center">
-              Powered by <span className="font-semibold">Together AI</span>.
-              Used by
-              <span className="font-semibold"> 600k+ users. </span>
-            </span>
-          </a>
-
           <h1 className="mt-4 text-balance text-center text-4xl leading-none text-gray-700 md:text-[64px] lg:mt-8">
             Turn your <span className="text-blue-500">idea</span>
             <br className="hidden md:block" /> into an{" "}
@@ -115,7 +125,7 @@ export default function Home() {
                     throw new Error("No body on response");
                   }
                   return res.body;
-                }).catch(e=>{
+                }).catch(e => {
                   console.error(e)
                 });
 
@@ -198,7 +208,7 @@ export default function Home() {
                     >
                       <Select.Trigger className="inline-flex items-center gap-1 rounded-md p-1 text-sm text-gray-400 hover:bg-gray-100 hover:text-gray-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-300">
                         <Select.Value aria-label={model}>
-                          <span>{selectedModel?.label}</span>
+                          <span>{selectedModel?.name}</span>
                         </Select.Value>
                         <Select.Icon>
                           <ChevronDownIcon className="size-3" />
@@ -207,14 +217,14 @@ export default function Home() {
                       <Select.Portal>
                         <Select.Content className="overflow-hidden rounded-md bg-white shadow ring-1 ring-black/5">
                           <Select.Viewport className="space-y-1 p-2">
-                            {MODELS.map((m) => (
+                            {models.map((m) => (
                               <Select.Item
-                                key={m.value}
-                                value={m.value}
+                                key={m.name}
+                                value={m.name}
                                 className="flex cursor-pointer items-center gap-1 rounded-md p-1 text-sm data-[highlighted]:bg-gray-100 data-[highlighted]:outline-none"
                               >
                                 <Select.ItemText className="inline-flex items-center gap-2 text-gray-500">
-                                  {m.label}
+                                  {m.name}
                                 </Select.ItemText>
                                 <Select.ItemIndicator>
                                   <CheckIcon className="size-3 text-blue-600" />
