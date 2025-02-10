@@ -10,12 +10,10 @@ import { StickToBottom } from "use-stick-to-bottom";
 export default function ChatLog({
   chat,
   activeMessage,
-  streamText,
   onMessageClick,
 }: {
   chat: Chat;
   activeMessage?: Message;
-  streamText: string;
   onMessageClick: (v: Message) => void;
 }) {
   const assistantMessages = chat.messages.filter((m) => m.role === "assistant");
@@ -40,20 +38,20 @@ export default function ChatLog({
                   assistantMessages.map((m) => m.id).indexOf(message.id) + 1
                 }
                 message={message}
-                isActive={!streamText && activeMessage?.id === message.id}
+                isActive={activeMessage?.id === message.id}
                 onMessageClick={onMessageClick}
               />
             )}
           </Fragment>
         ))}
 
-        {streamText && (
+        {/* { && (
           <AssistantMessage
             content={streamText}
             version={assistantMessages.length + 1}
             isActive={true}
           />
-        )}
+        )} */}
       </StickToBottom.Content>
     </StickToBottom>
   );

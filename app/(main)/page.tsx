@@ -13,9 +13,8 @@ import { CheckIcon, ChevronDownIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { use, useState, useRef, useTransition, useEffect } from "react";
+import { useState, useRef, useTransition, useEffect } from "react";
 import { createChat } from "./actions";
-import { Context } from "./providers";
 import Header from "@/components/header";
 import { useS3Upload } from "next-s3-upload";
 import UploadIcon from "@/components/icons/upload-icon";
@@ -26,10 +25,9 @@ import { ApiResponse } from "@/lib/response";
 import { useChat } from 'ai/react';
 
 export default function Home() {
-  const { setStreamPromise } = use(Context);
   const router = useRouter();
-  const { messages, input, setInput, append } = useChat();
-  
+  const { id } = useChat();
+
   const [prompt, setPrompt] = useState("");
   const [models, setModels] = useState<ModelResponse[]>([]);
   const [model, setModel] = useState<string>();
@@ -107,18 +105,19 @@ export default function Home() {
                 assert.ok(typeof model === "string");
                 assert.ok(quality === "high" || quality === "low");
 
-                const { chatId, lastMessageId } = await createChat(
+                const { chat, messages } = await createChat(
+                  id,
                   prompt,
                   model,
                   quality,
                   screenshotUrl,
                 );
 
-                const streamPromise = fetch(
-                  "/api/get-next-completion-stream-promise",
+                fetch(
+                  "/api/chat",
                   {
                     method: "POST",
-                    body: JSON.stringify({ messageId: lastMessageId, model }),
+                    body: JSON.stringify({ messages, model: chat.model, chatId: chat.id }),
                   },
                 ).then((res) => {
                   if (!res.body) {
@@ -128,10 +127,8 @@ export default function Home() {
                 }).catch(e => {
                   console.error(e)
                 });
-
                 startTransition(() => {
-                  setStreamPromise(streamPromise);
-                  router.push(`/chats/${chatId}`);
+                  router.push(`/chats/${chat.id}`);
                 });
               });
             }}

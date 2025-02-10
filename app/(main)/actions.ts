@@ -12,14 +12,16 @@ import { notFound } from "next/navigation";
 const llmModel = "phi:latest"
 
 export async function createChat(
+  id: string,
   prompt: string,
-  model: string=llmModel,
+  model: string = llmModel,
   quality: "high" | "low",
   screenshotUrl: string | undefined,
 ) {
   const prisma = getPrisma();
   const chat = await prisma.chat.create({
     data: {
+      id,
       model,
       quality,
       prompt,
@@ -158,7 +160,8 @@ export async function createChat(
   if (!lastMessage) throw new Error("No new message");
 
   return {
-    chatId: chat.id,
+    chat: chat,
+    messages:newChat.messages,
     lastMessageId: lastMessage.id,
   };
 }

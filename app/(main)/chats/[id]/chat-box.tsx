@@ -5,8 +5,9 @@ import Spinner from "@/components/spinner";
 import assert from "assert";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
-import { createMessage } from "../../actions";
+// import { createMessage } from "../../actions";
 import { type Chat } from "./page";
+import { CreateMessage } from "ai";
 
 export default function ChatBox({
   chat,
@@ -14,7 +15,7 @@ export default function ChatBox({
   isStreaming,
 }: {
   chat: Chat;
-  onNewStreamPromise: (v: Promise<ReadableStream>) => void;
+  onNewStreamPromise: (v: CreateMessage) => void;
   isStreaming: boolean;
 }) {
   const [isPending, startTransition] = useTransition();
@@ -45,24 +46,7 @@ export default function ChatBox({
         className="relative flex w-full"
         action={async () => {
           startTransition(async () => {
-            const message = await createMessage(chat.id, prompt, "user");
-            const streamPromise = fetch(
-              "/api/get-next-completion-stream-promise",
-              {
-                method: "POST",
-                body: JSON.stringify({
-                  messageId: message.id,
-                  model: chat.model,
-                }),
-              },
-            ).then((res) => {
-              if (!res.body) {
-                throw new Error("No body on response");
-              }
-              return res.body;
-            });
-
-            onNewStreamPromise(streamPromise);
+            onNewStreamPromise({ content: prompt, role: "user" });
             startTransition(() => {
               router.refresh();
               setPrompt("");

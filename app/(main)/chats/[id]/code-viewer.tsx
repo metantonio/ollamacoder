@@ -23,7 +23,7 @@ const SyntaxHighlighter = dynamic(
 
 export default function CodeViewer({
   chat,
-  streamText,
+  streamText = "",
   message,
   onMessageChange,
   activeTab,

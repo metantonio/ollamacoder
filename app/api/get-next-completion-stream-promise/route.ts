@@ -2,6 +2,7 @@ import { streamText } from 'ai';
 import { ollama } from 'ollama-ai-provider'
 import { z } from "zod";
 import { getPrisma } from "@/lib/prisma";
+import { createMessage } from '@/app/(main)/actions';
 
 export async function POST(req: Request) {
   const prisma = getPrisma();
@@ -39,6 +40,13 @@ export async function POST(req: Request) {
     model: ollama(model),
     system: 'You are a helpful assistant.',
     messages,
+    onFinish: async ({ text }) => {
+      await createMessage(
+        message.chatId,
+        text,
+        "assistant",
+      );
+    },
   });
 
   return result.toDataStreamResponse();
