@@ -16,11 +16,13 @@ import { CreateMessage, Message, useChat } from "ai/react";
 
 export default function PageClient({ chat }: { chat: Chat }) {
   const { messages, isLoading, append } = useChat({
-    id: chat.id, initialMessages: chat.messages as Message[], onResponse(response) {
-      response.json().then(data => {
-        data
-      })
-
+    id: chat.id,
+    body: {
+      model: chat.model,
+      chatId: chat.id
+    },
+    async onResponse(response) {
+      console.log(await response.json());
     },
   });
 
@@ -33,6 +35,7 @@ export default function PageClient({ chat }: { chat: Chat }) {
   const [activeMessage, setActiveMessage] = useState(
     chat.messages.filter((m) => m.role === "assistant").at(-1),
   );
+  console.log(messages);
 
   return (
     <div className="h-dvh">
@@ -65,7 +68,7 @@ export default function PageClient({ chat }: { chat: Chat }) {
             isStreaming={!!isLoading}
           />
         </div>
-        {/* 
+
         <CodeViewerLayout
           isShowing={isShowingCodeViewer}
           onClose={() => {
@@ -115,7 +118,7 @@ export default function PageClient({ chat }: { chat: Chat }) {
               }}
             />
           )}
-        </CodeViewerLayout> */}
+        </CodeViewerLayout>
       </div>
     </div>
   );

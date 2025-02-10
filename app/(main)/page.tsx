@@ -26,7 +26,7 @@ import { useChat } from 'ai/react';
 
 export default function Home() {
   const router = useRouter();
-  const { id } = useChat();
+  const { id, append, setMessages } = useChat();
 
   const [prompt, setPrompt] = useState("");
   const [models, setModels] = useState<ModelResponse[]>([]);
@@ -113,19 +113,27 @@ export default function Home() {
                   screenshotUrl,
                 );
 
-                fetch(
-                  "/api/chat",
-                  {
-                    method: "POST",
-                    body: JSON.stringify({ messages, model: chat.model, chatId: chat.id }),
-                  },
-                ).then((res) => {
-                  if (!res.body) {
-                    throw new Error("No body on response");
+                // fetch(
+                //   "/api/chat",
+                //   {
+                //     method: "POST",
+                //     body: JSON.stringify({ messages, model: chat.model, chatId: chat.id }),
+                //   },
+                // ).then((res) => {
+                //   if (!res.body) {
+                //     throw new Error("No body on response");
+                //   }
+                //   return res.body;
+                // }).catch(e => {
+                //   console.error(e)
+                // });
+                setMessages([messages[0]]);
+
+                append(messages[1], {
+                  body: {
+                    model: chat.model,
+                    chatId: chat.id
                   }
-                  return res.body;
-                }).catch(e => {
-                  console.error(e)
                 });
                 startTransition(() => {
                   router.push(`/chats/${chat.id}`);
