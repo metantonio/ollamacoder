@@ -22,7 +22,7 @@ export default function PageClient({ chat }: { chat: Chat }) {
       chatId: chat.id
     },
     async onResponse(response) {
-      console.log(await response.json());
+      // console.log(await response.json());
     },
   });
 
@@ -35,7 +35,7 @@ export default function PageClient({ chat }: { chat: Chat }) {
   const [activeMessage, setActiveMessage] = useState(
     chat.messages.filter((m) => m.role === "assistant").at(-1),
   );
-  console.log(messages);
+  // console.log(messages);
 
   return (
     <div className="h-dvh">

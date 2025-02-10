@@ -113,28 +113,17 @@ export default function Home() {
                   screenshotUrl,
                 );
 
-                // fetch(
-                //   "/api/chat",
-                //   {
-                //     method: "POST",
-                //     body: JSON.stringify({ messages, model: chat.model, chatId: chat.id }),
-                //   },
-                // ).then((res) => {
-                //   if (!res.body) {
-                //     throw new Error("No body on response");
-                //   }
-                //   return res.body;
-                // }).catch(e => {
-                //   console.error(e)
-                // });
-                setMessages([messages[0]]);
+                setMessages(messages.slice(0, -1));
 
-                append(messages[1], {
-                  body: {
-                    model: chat.model,
-                    chatId: chat.id
+                append(messages[messages.length - 1],
+                  {
+                    body: {
+                      model: chat.model,
+                      chatId: chat.id
+                    }
                   }
-                });
+                );
+                
                 startTransition(() => {
                   router.push(`/chats/${chat.id}`);
                 });
