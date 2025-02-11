@@ -5,16 +5,12 @@ import Spinner from "@/components/spinner";
 import assert from "assert";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
-// import { createMessage } from "../../actions";
-import { type Chat } from "./page";
 import { CreateMessage } from "ai";
 
 export default function ChatBox({
-  chat,
   onNewStreamPromise,
   isStreaming,
 }: {
-  chat: Chat;
   onNewStreamPromise: (v: CreateMessage) => void;
   isStreaming: boolean;
 }) {

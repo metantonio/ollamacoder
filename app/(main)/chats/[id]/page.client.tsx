@@ -1,10 +1,8 @@
 "use client";
 
-import { createMessage } from "@/app/(main)/actions";
 import LogoSmall from "@/components/icons/logo-small";
 import { splitByFirstCodeFence } from "@/lib/utils";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { startTransition, useState } from "react";
 
 import ChatBox from "./chat-box";
@@ -13,29 +11,61 @@ import CodeViewer from "./code-viewer";
 import CodeViewerLayout from "./code-viewer-layout";
 import type { Chat } from "./page";
 import { CreateMessage, Message, useChat } from "ai/react";
+import { useRouter } from "next/navigation";
+
+let didPushToCode = false;
+let didPushToPreview = false;
 
 export default function PageClient({ chat }: { chat: Chat }) {
-  const { messages, isLoading, append } = useChat({
-    id: chat.id,
-    body: {
-      model: chat.model,
-      chatId: chat.id
-    },
-    async onResponse(response) {
-      // console.log(await response.json());
-    },
-  });
+  const router = useRouter();
 
   const [isShowingCodeViewer, setIsShowingCodeViewer] = useState(
     chat.messages.some((m) => m.role === "assistant"),
   );
   const [activeTab, setActiveTab] = useState<"code" | "preview">("preview");
-  const router = useRouter();
 
   const [activeMessage, setActiveMessage] = useState(
     chat.messages.filter((m) => m.role === "assistant").at(-1),
   );
-  // console.log(messages);
+
+  const { messages, isLoading, append } = useChat({
+    id: chat.id,
+    initialMessages: chat.messages as Message[],
+    body: {
+      model: chat.model,
+      chatId: chat.id,
+    },
+    async onResponse(response) {
+      const content = await response.json()
+      if (
+        !didPushToCode &&
+        splitByFirstCodeFence(content).some(
+          (part) => part.type === "first-code-fence-generating",
+        )
+      ) {
+        didPushToCode = true;
+        setIsShowingCodeViewer(true);
+        setActiveTab("code");
+      }
+
+      if (
+        !didPushToPreview &&
+        splitByFirstCodeFence(content).some(
+          (part) => part.type === "first-code-fence",
+        )
+      ) {
+        didPushToPreview = true;
+        setIsShowingCodeViewer(true);
+        setActiveTab("preview");
+      }
+    },
+
+    async onFinish(message, options) {
+      didPushToCode = false;
+      didPushToPreview = false;
+      router.refresh();
+    },
+  });
 
   return (
     <div className="h-dvh">
@@ -49,10 +79,10 @@ export default function PageClient({ chat }: { chat: Chat }) {
           </div>
 
           <ChatLog
-            chat={chat}
+            chat={{ ...chat, messages }}
             activeMessage={activeMessage}
             onMessageClick={(message) => {
-              if (message !== activeMessage) {
+              if (message.id !== activeMessage?.id) {
                 setActiveMessage(message);
                 setIsShowingCodeViewer(true);
               } else {
@@ -63,7 +93,6 @@ export default function PageClient({ chat }: { chat: Chat }) {
           />
 
           <ChatBox
-            chat={chat}
             onNewStreamPromise={(message: CreateMessage) => append(message, { body: { model: chat.model, chatId: chat.id } })}
             isStreaming={!!isLoading}
           />
@@ -79,7 +108,7 @@ export default function PageClient({ chat }: { chat: Chat }) {
           {isShowingCodeViewer && (
             <CodeViewer
               streamText={""}
-              chat={chat}
+              chat={{ ...chat, messages }}
               message={activeMessage}
               onMessageChange={setActiveMessage}
               activeTab={activeTab}
@@ -92,28 +121,15 @@ export default function PageClient({ chat }: { chat: Chat }) {
                 startTransition(async () => {
                   let newMessageText = `The code is not working. Can you fix it? Here's the error:\n\n`;
                   newMessageText += error.trimStart();
-                  const message = await createMessage(
-                    chat.id,
-                    newMessageText,
-                    "user",
-                  );
 
-                  const streamPromise = fetch(
-                    "/api/get-next-completion-stream-promise",
+                  append({ content: newMessageText, role: 'user' },
                     {
-                      method: "POST",
-                      body: JSON.stringify({
-                        messageId: message.id,
+                      body: {
                         model: chat.model,
-                      }),
-                    },
-                  ).then((res) => {
-                    if (!res.body) {
-                      throw new Error("No body on response");
+                        chatId: chat.id
+                      }
                     }
-                    return res.body;
-                  });
-                  router.refresh();
+                  );
                 });
               }}
             />

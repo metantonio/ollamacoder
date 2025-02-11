@@ -63,7 +63,9 @@ export default function Home() {
     ).then((res) => {
       return res.json();
     }).then((data: ApiResponse<ModelResponse[]>) => {
-      setModels(data.data)
+      if (data.data) {
+        setModels(data.data)
+      }
       console.log(data);
     }).catch(e => {
       console.error(e)
@@ -123,7 +125,7 @@ export default function Home() {
                     }
                   }
                 );
-                
+
                 startTransition(() => {
                   router.push(`/chats/${chat.id}`);
                 });
