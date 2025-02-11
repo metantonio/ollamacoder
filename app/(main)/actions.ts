@@ -50,7 +50,16 @@ export async function createChat(
   }
 
   async function fetchTopExample() {
+    const jsonSchema = {
+      type: "object",
+      properties: {
+        content: { type: "string" }
+      },
+      required: ["content"]
+    };
+
     const findSimilarExamples = await ollama.chat({
+      format: jsonSchema,
       model,
       messages: [
         {
@@ -71,18 +80,19 @@ export async function createChat(
     });
 
     const mostSimilarExample =
-      findSimilarExamples?.message.content || "none";
+      findSimilarExamples?.message.content ? JSON.parse(findSimilarExamples?.message.content).content : "none";
     return mostSimilarExample;
   }
   const [title, mostSimilarExample] = await Promise.all([
     fetchTitle(),
     fetchTopExample(),
   ]);
+console.log(mostSimilarExample);
 
   let fullScreenshotDescription;
   if (screenshotUrl) {
     const screenshotResponse = await ollama.chat({
-      model: "meta-llama/Llama-3.2-90B-Vision-Instruct-Turbo",
+      model: "llama3.2-vision:latest",
       // max_tokens: 1000,
       messages: [
         {
@@ -161,7 +171,7 @@ export async function createChat(
 
   return {
     chat: chat,
-    messages:newChat.messages,
+    messages: newChat.messages,
     lastMessageId: lastMessage.id,
   };
 }

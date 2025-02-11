@@ -3,7 +3,7 @@
 import LogoSmall from "@/components/icons/logo-small";
 import { splitByFirstCodeFence } from "@/lib/utils";
 import Link from "next/link";
-import { startTransition, useState } from "react";
+import { startTransition, useEffect, useState } from "react";
 
 import ChatBox from "./chat-box";
 import ChatLog from "./chat-log";
@@ -35,8 +35,16 @@ export default function PageClient({ chat }: { chat: Chat }) {
       model: chat.model,
       chatId: chat.id,
     },
-    async onResponse(response) {
-      const content = await response.json()
+    async onFinish(message, options) {
+      didPushToCode = false;
+      didPushToPreview = false;
+      router.refresh();
+    },
+  });
+
+  useEffect(() => {
+    const content = messages.at(-1)?.content
+    if (isLoading && content) {
       if (
         !didPushToCode &&
         splitByFirstCodeFence(content).some(
@@ -47,7 +55,6 @@ export default function PageClient({ chat }: { chat: Chat }) {
         setIsShowingCodeViewer(true);
         setActiveTab("code");
       }
-
       if (
         !didPushToPreview &&
         splitByFirstCodeFence(content).some(
@@ -58,14 +65,8 @@ export default function PageClient({ chat }: { chat: Chat }) {
         setIsShowingCodeViewer(true);
         setActiveTab("preview");
       }
-    },
-
-    async onFinish(message, options) {
-      didPushToCode = false;
-      didPushToPreview = false;
-      router.refresh();
-    },
-  });
+    }
+  }, [isLoading, messages])
 
   return (
     <div className="h-dvh">
