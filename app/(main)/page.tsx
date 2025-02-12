@@ -66,7 +66,6 @@ export default function Home() {
       if (data.data) {
         setModels(data.data)
       }
-      console.log(data);
     }).catch(e => {
       console.error(e)
     });
@@ -350,24 +349,24 @@ export default function Home() {
             <div className="font-medium">
               Built with{" "}
               <a
-                href="https://togetherai.link/?utm_source=example-app&utm_medium=llamacoder&utm_campaign=llamacoder-app-signup"
+                href="https://ollama.com/"
                 className="font-semibold text-blue-600 underline-offset-4 transition hover:text-gray-700 hover:underline"
               >
-                Llama 3.1
+                Ollama
               </a>{" "}
               and{" "}
               <a
-                href="https://togetherai.link/?utm_source=example-app&utm_medium=llamacoder&utm_campaign=llamacoder-app-signup"
+                href="https://sdk.vercel.ai/"
                 className="font-semibold text-blue-600 underline-offset-4 transition hover:text-gray-700 hover:underline"
               >
-                Together AI
+                Vercel AI
               </a>
               .
             </div>
           </div>
           <div className="flex space-x-4 pb-4 sm:pb-0">
             <Link
-              href="https://twitter.com/nutlope"
+              href="https://x.com/annilq"
               className="group"
               aria-label=""
             >
@@ -379,7 +378,7 @@ export default function Home() {
               </svg>
             </Link>
             <Link
-              href="https://github.com/Nutlope/llamacoder"
+              href="https://github.com/annilq/ollamacoder"
               className="group"
               aria-label=""
             >
