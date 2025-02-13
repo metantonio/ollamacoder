@@ -73,7 +73,7 @@ export function splitByFirstCodeFence(markdown: string) {
   const codeFenceRegex = /^```([^\n]*)$/;
 
   for (const line of lines) {
-    const match = line.match(codeFenceRegex);
+    const match = line.trimStart().match(codeFenceRegex);
 
     if (!codeFenceFound) {
       if (match && !inFirstCodeFence) {
