@@ -87,7 +87,6 @@ export async function createChat(
     fetchTitle(),
     fetchTopExample(),
   ]);
-console.log(mostSimilarExample);
 
   let fullScreenshotDescription;
   if (screenshotUrl) {

@@ -78,7 +78,7 @@ export default function History() {
     });
   }
   return (
-    <div className="max-w-2xl mx-auto py-4">
+    <div className="container mx-auto py-4">
       {editMode ? (
         <div className="flex justify-between items-center">
           You have selected {form.getValues("items").length} chats
@@ -140,7 +140,7 @@ export default function History() {
                       return (
                         <FormItem
                           key={chat.id}
-                          className="flex flex-row items-center space-x-2 space-y-2 group rounded shadow w-full p-2 border relative cursor-pointer"
+                          className="flex flex-row items-center space-y-0 group rounded shadow w-full p-2 border relative cursor-pointer"
                         >
                           <FormControl className={cn("group-hover:visible absolute -left-2", editMode ? "" : "invisible")}>
                             <Checkbox
@@ -162,15 +162,16 @@ export default function History() {
                               onClick={(e) => {
                                 if (!editMode) {
                                   e.stopPropagation()
+                                  e.preventDefault()
                                   router.push(`/chats/${chat.id}`);
                                 }
                               }}>
-                              <div className="font-medium">
+                              <div>
                                 {chat.title}
                               </div>
-                              <span className="text-sm font-medium leading-none text-gray-500">
+                              <div className="text-xs leading-none text-gray-500 mt-2 text-neutral-500">
                                 {formatDate(chat.createdAt.valueOf())}
-                              </span>
+                              </div>
                             </div>
                           </FormLabel>
                         </FormItem>
