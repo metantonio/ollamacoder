@@ -171,7 +171,6 @@ export async function createChat(
   return {
     chat: chat,
     messages: newChat.messages,
-    lastMessageId: lastMessage.id,
   };
 }
 
