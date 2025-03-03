@@ -163,11 +163,6 @@ export async function createChat(
     },
   });
 
-  const lastMessage = newChat.messages
-    .sort((a, b) => a.position - b.position)
-    .at(-1);
-  if (!lastMessage) throw new Error("No new message");
-
   return {
     chat: chat,
     messages: newChat.messages,
